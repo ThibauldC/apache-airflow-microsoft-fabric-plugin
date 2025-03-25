@@ -13,15 +13,7 @@ from airflow.hooks.base import BaseHook
 from airflow.models import Connection
 from airflow.utils.session import provide_session
 
-FABRIC_SCOPES = "https://api.fabric.microsoft.com/Item.Execute.All https://api.fabric.microsoft.com/Item.ReadWrite.All offline_access openid profile"
-
-
-@provide_session
-def update_conn(conn_id, refresh_token: str, session=None):
-    conn = session.query(Connection).filter(Connection.conn_id == conn_id).one()
-    conn.password = refresh_token
-    session.add(conn)
-    session.commit()
+FABRIC_SCOPES = "https://api.fabric.microsoft.com/.default"
 
 
 class FabricRunItemStatus:
@@ -113,18 +105,15 @@ class FabricHook(BaseHook):
         connection = self.get_connection(self.conn_id)
         tenant_id = connection.extra_dejson.get("tenantId")
         client_id = connection.login
-        client_secret = connection.extra_dejson.get("clientSecret")
+        client_secret = connection.password
         scopes = connection.extra_dejson.get("scopes", FABRIC_SCOPES)
-        refresh_token = connection.password
 
         data = {
-            "grant_type": "refresh_token",
+            "grant_type": "client_credentials",
             "client_id": client_id,
-            "refresh_token": refresh_token,
+            "client_secret": client_secret,
             "scope": scopes,
         }
-        if client_secret:
-            data["client_secret"] = client_secret
 
         response = self._send_request(
             "POST",
@@ -141,12 +130,9 @@ class FabricHook(BaseHook):
         response_data = response.json()
 
         api_access_token: str | None = response_data.get("access_token")
-        api_refresh_token: str | None = response_data.get("refresh_token")
 
-        if not api_access_token or not api_refresh_token:
+        if not api_access_token:
             raise AirflowException("Failed to obtain access or refresh token from API.")
-
-        update_conn(self.conn_id, api_refresh_token)
 
         self.cached_access_token = {
             "access_token": api_access_token,
@@ -345,18 +331,15 @@ class FabricAsyncHook(FabricHook):
         connection = await sync_to_async(self.get_connection)(self.conn_id)
         tenant_id = connection.extra_dejson.get("tenantId")
         client_id = connection.login
-        client_secret = connection.extra_dejson.get("clientSecret")
-        refresh_token = connection.password
+        client_secret = connection.password
         scopes = connection.extra_dejson.get("scopes", FABRIC_SCOPES)
 
         data = {
-            "grant_type": "refresh_token",
+            "grant_type": "client_credentials",
             "client_id": client_id,
-            "refresh_token": refresh_token,
+            "client_secret": client_secret,
             "scope": scopes,
         }
-        if client_secret:
-            data["client_secret"] = client_secret
 
         response = await self._async_send_request(
             "POST",
@@ -364,12 +347,9 @@ class FabricAsyncHook(FabricHook):
             data=data,
         )
         api_access_token: str | None = response.get("access_token")
-        api_refresh_token: str | None = response.get("refresh_token")
 
-        if not api_access_token or not api_refresh_token:
+        if not api_access_token:
             raise AirflowException("Failed to obtain access or refresh token from API.")
-
-        await sync_to_async(update_conn)(self.conn_id, api_refresh_token)
 
         self.cached_access_token = {
             "access_token": api_access_token,
