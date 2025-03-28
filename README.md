@@ -15,22 +15,21 @@ pip install apache-airflow-microsoft-fabric-plugin
 
 ### Prerequisities
 Before diving in,
-* The plugin supports the <strong>authentication using user tokens</strong>. Tenant level admin account must enable the setting <strong>Allow user consent for apps</strong>. Refer to: [Configure user consent](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent?pivots=portal)
-* [Create a Microsoft Entra Id app](https://learn.microsoft.com/entra/identity-platform/quickstart-register-app?tabs=certificate) if you don’t have one.
-* You must have [Refresh token](https://learn.microsoft.com/entra/identity-platform/v2-oauth2-auth-code-flow#refresh-the-access-token).
+* The plugin supports the <strong>authentication using service principal</strong>. The Fabric admin must enable this setting. Refer to: [Enable Service Principal authentication for Fabric APIs](https://learn.microsoft.com/en-us/fabric/admin/enable-service-principal-admin-apis)
+* [Create a Microsoft Entra Id app](https://learn.microsoft.com/entra/identity-platform/quickstart-register-app) if you don’t have one.
+* You must [create a client secret](https://learn.microsoft.com/entra/identity-platform/quickstart-register-app?tabs=client-secret) and save it in your connection.
 
 
 Since custom connection forms aren't feasible in Apache Airflow plugins, use can use `Generic` connection type. Here's what you need to store:
 1. `Connection Id`: Name of the connection Id
 2. `Connection Type`: Generic
 3. `Login`: The Client ID of your service principal.
-4. `Password`: The refresh token fetched using Microsoft OAuth.
+4. `Password`: The Client secret of your service principal
 5. `Extra`: {
     "tenantId": "The Tenant Id of your service principal",
-    "clientSecret": "(optional) The Client Secret for your Entra ID App"
     "scopes": "(optional) Scopes you used to fetch the refresh token" 
 }
-> **_NOTE:_** Default scopes applied are: https://api.fabric.microsoft.com/Item.Execute.All, https://api.fabric.microsoft.com/Item.ReadWrite.All, offline_access, openid, profile
+> **_NOTE:_** Default scope applied is: https://api.fabric.microsoft.com/.default
 
 
 ## Operators
