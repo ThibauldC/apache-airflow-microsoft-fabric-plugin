@@ -211,6 +211,9 @@ class FabricHook(BaseHook):
 
         data = {"executionData": {"parameters": job_params}} if job_params else {}
 
+        if job_type == "sparkjob":
+            url = f"{self._base_url}/{self._api_version}/workspaces/{workspace_id}/sparkJobDefinitions/{item_id}/jobs/instances?jobType={job_type}"
+
         response = self._send_request("POST", url, headers=headers, json=data)
         response.raise_for_status()
 
