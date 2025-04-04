@@ -69,6 +69,9 @@ class FabricRunItemLink(BaseOperatorLink):
         elif operator.job_type == "Pipeline":
             url = f"{self.base_url}/workloads/data-pipeline/monitoring/workspaces/{self.workspace_id}/pipelines/{self.item_name}/{self.item_run_id}?experience=data-factory"
 
+        elif operator.job_type == "sparkjob":
+            url = f"{self.base_url}/groups/{self.workspace_id}/sparkjobdefinitions/{self.item_id}?experience=fabric-developer"
+
         return url
 
 

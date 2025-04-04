@@ -40,7 +40,7 @@ This operator composes the logic for this plugin. It triggers the Fabric item ru
 * `workspace_id`: The workspace Id.
 * `item_id`: The Item Id. i.e Notebook and Pipeline.
 * `fabric_conn_id`: Connection Id for Fabric.
-* `job_type`: "RunNotebook" or "Pipeline".
+* `job_type`: "RunNotebook", "Pipeline" or "sparkjob".
 * `wait_for_termination`: (Default value: True) Wait until the run item.
 * `timeout`: int (Default value: 60 * 60 * 24 * 7). Time in seconds to wait for the pipeline or notebook. Used only if `wait_for_termination` is True.
 * `check_interval`: int (Default value: 60s). Time in seconds to wait before rechecking the refresh status.
